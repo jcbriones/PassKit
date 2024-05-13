@@ -518,7 +518,7 @@ public final class PassKitCustom<D, R: PassKitRegistration, E: PassKitErrorLog, 
             }
             
             for dynamicContent in try await delegate.dynamicContent(for: pass, db: db) {
-                try? dynamicContent.value.write(to: root.appendingPathExtension(dynamicContent.key))
+                try dynamicContent.value.write(to: root.appendingPathComponent(dynamicContent.key))
             }
 
             try encoded.write(to: root.appendingPathComponent("pass.json"))
