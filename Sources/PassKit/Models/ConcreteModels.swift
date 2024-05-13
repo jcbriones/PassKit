@@ -70,14 +70,18 @@ open class PKPass: PassKitPass {
     @ID
     public var id: UUID?
 
-    @Field(key: "modified")
-    public var modified: Date
+    @Timestamp(key: "updated", on: .update)
+    public var updated: Date?
 
-    @Field(key: "type_identifier")
-    public var type: String
+    @Field(key: "pass_type_identifier")
+    public var passTypeIdentifier: String
 
     public required init() {
-        self.modified = Date()
+        fatalError("Use the init(passTypeIdentifier:) instead")
+    }
+
+    public required init(passTypeIdentifier: String) {
+        self.passTypeIdentifier = passTypeIdentifier
     }
 }
 
@@ -85,8 +89,8 @@ extension PKPass: AsyncMigration {
     public func prepare(on database: any Database) async throws {
         try await database.schema(Self.schema)
             .id()
-            .field("modified", .datetime, .required)
-            .field("type_identifier", .string, .required)
+            .field("updated", .datetime, .required)
+            .field("pass_type_identifier", .string, .required)
             .create()
     }
 
@@ -101,14 +105,13 @@ final public class PKErrorLog: PassKitErrorLog {
     @ID(custom: .id)
     public var id: Int?
 
-    @Field(key: "created")
-    public var date: Date
+    @Timestamp(key: "created", on: .create)
+    public var created: Date?
 
     @Field(key: "message")
     public var message: String
 
     public init(message: String) {
-        date = Date()
         self.message = message
     }
 
@@ -153,8 +156,8 @@ extension PKRegistration: AsyncMigration {
             .field(.id, .int, .identifier(auto: true))
             .field("device_id", .int, .required)
             .field("pass_id", .uuid, .required)
-            .foreignKey("device_id", references: PKDevice.schema, .id, onDelete: .cascade)
-            .foreignKey("pass_id", references: PKPass.schema, .id, onDelete: .cascade)
+            .foreignKey("device_id", references: DeviceType.schema, .id, onDelete: .cascade)
+            .foreignKey("pass_id", references: PassType.schema, .id, onDelete: .cascade)
             .create()
     }
 

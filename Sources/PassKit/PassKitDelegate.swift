@@ -30,6 +30,7 @@ import Vapor
 import Fluent
 
 public protocol PassKitDelegate: AnyObject, Sendable {
+    associatedtype P: PassKitPass
     /// Should return a `URL` which points to the template data for the pass.
     ///
     /// The URL should point to a directory containing all the images and localizations for the generated `.pkpass` archive but should *not* contain any of these items:
@@ -44,7 +45,17 @@ public protocol PassKitDelegate: AnyObject, Sendable {
     /// - Returns: A `URL` which points to the template data for the pass.
     ///
     /// > Important: Be sure to use the `URL(fileURLWithPath:isDirectory:)` constructor.
-    func template<P: PassKitPass>(for: P, db: any Database) async throws -> URL
+    func template(for pass: P, db: any Database) async throws -> URL
+
+    /// An optional dynamic content where will get included in your template before bundling a pkpass. This is helpful if you want your content to include
+    /// dynamic images such as `thumbnail.png` or other acceptable images.
+    ///
+    /// - Parameters:
+    ///   - pass: The pass data from the SQL server.
+    ///   - db: The SQL database to query against.
+    ///
+    /// - Returns: A dictionary of filename (key) key and the data (value) that will be added as part of the template
+    func dynamicContent(for pass: P, db: any Database) async throws -> [String: Data]
 
     /// Generates the SSL `signature` file.
     ///
@@ -68,7 +79,7 @@ public protocol PassKitDelegate: AnyObject, Sendable {
     /// - Returns: The encoded pass JSON data.
     ///
     /// > Tip: See the [Pass](https://developer.apple.com/documentation/walletpasses/pass) object to understand the keys.
-    func encode<P: PassKitPass>(pass: P, db: any Database, encoder: JSONEncoder) async throws -> Data
+    func encode(pass: P, db: any Database, encoder: JSONEncoder) async throws -> Data
 
     /// Should return a `URL` which points to the template data for the pass.
     ///
