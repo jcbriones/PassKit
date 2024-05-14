@@ -60,9 +60,9 @@ internal extension PassKitPass {
         return type
     }
     
-    var _$updated: Field<Date> {
+    var _$updated: Timestamp<DefaultTimestampFormat> {
         guard let mirror = Mirror(reflecting: self).descendant("_updated"),
-            let updated = mirror as? Field<Date> else {
+            let updated = mirror as? Timestamp<DefaultTimestampFormat> else {
                 fatalError("updated property must be declared using @Timestamp(on: .updated)")
         }
         
