@@ -76,6 +76,9 @@ open class PKPass: PassKitPass {
     @Field(key: "pass_type_identifier")
     public var passTypeIdentifier: String
 
+    @Field(key: "authentication_token")
+    public var authenticationToken: String
+
     public required init() {
         fatalError("Use the init(passTypeIdentifier:) instead")
     }
@@ -91,6 +94,7 @@ extension PKPass: AsyncMigration {
             .id()
             .field("updated", .datetime, .required)
             .field("pass_type_identifier", .string, .required)
+            .field("authentication_token", .string, .required)
             .create()
     }
 

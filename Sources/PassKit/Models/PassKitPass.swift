@@ -30,12 +30,15 @@ import Vapor
 import Fluent
 
 /// Represents the `Model` that stores PassKit passes..  Uses a UUID so people can't easily guess your pass IDs
-public protocol PassKitPass: Model where IDValue == UUID {
+public protocol PassKitPass: Model, Authenticatable where IDValue == UUID {
     /// The pass type
     var passTypeIdentifier: String { get set }
 
-    /// The last time the pass was modified.
+    /// The last time the pass was updated.
     var updated: Date? { get set }
+
+    /// The authentication token assigned to a pass
+    var authenticationToken: String { get set }
 }
 
 internal extension PassKitPass {
@@ -65,4 +68,14 @@ internal extension PassKitPass {
         
         return updated
     }
+
+    var _$authenticationToken: Field<String> {
+        guard let mirror = Mirror(reflecting: self).descendant("_authenticationToken"),
+              let authenticationToken = mirror as? Field<String> else {
+            fatalError("authenticationToken property must be declared using @Field")
+        }
+
+        return authenticationToken
+    }
+
 }

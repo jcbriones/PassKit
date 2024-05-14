@@ -43,8 +43,8 @@ public final class PassKit<Delegate: PassKitDelegate>: Sendable where Delegate.P
     /// Registers all the routes required for PassKit to work.
     ///
     /// - Parameter authorizationCode: The `authenticationToken` which you are going to use in the `pass.json` file.
-    public func registerRoutes(authorizationCode: String? = nil) {
-        kit.registerRoutes(authorizationCode: authorizationCode)
+    public func registerRoutes() {
+        kit.registerRoutes()
     }
     
     public func registerPushRoutes(middleware: any Middleware) throws {
@@ -101,16 +101,12 @@ public final class PassKitCustom<D, R: PassKitRegistration, E: PassKitErrorLog, 
     /// Registers all the routes required for PassKit to work.
     ///
     /// - Parameter authorizationCode: The `authenticationToken` which you are going to use in the `pass.json` file.
-    public func registerRoutes(authorizationCode: String? = nil) {
+    public func registerRoutes() {
         v1.value.get("devices", ":deviceLibraryIdentifier", "registrations", ":type", use: { try await self.passesForDevice(req: $0) })
         v1.value.post("log", use: { try await self.logError(req: $0) })
         
-        guard let code = authorizationCode ?? Environment.get("PASS_KIT_AUTHORIZATION") else {
-            fatalError("Must pass in an authorization code")
-        }
-        
-        let v1auth = v1.value.grouped(ApplePassMiddleware(authorizationCode: code))
-        
+        let v1auth = v1.value.grouped(ApplePassAuthenticator<Delegate.P>())
+
         v1auth.post("devices", ":deviceLibraryIdentifier", "registrations", ":type", ":passSerial", use: { try await self.registerDevice(req: $0) })
         v1auth.get("passes", ":type", ":passSerial", use: { try await self.latestVersionOfPass(req: $0) })
         v1auth.delete("devices", ":deviceLibraryIdentifier", "registrations", ":type", ":passSerial", use: { try await self.unregisterDevice(req: $0) })
